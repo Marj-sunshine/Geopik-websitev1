@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GeoPik — Industry-Leading Data Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+  :root {
+    --red: #E8312A;
+    --red-dark: #C0241D;
+    --red-light: #FDECEA;
+    --cream: #F0EDE6;
+    --dark: #111111;
+    --dark2: #1A1A1A;
+    --sidebar-bg: #F5F3EE;
+    --white: #FFFFFF;
+    --gray: #666666;
+    --gray-light: #AAAAAA;
+    --border: #E2DDD5;
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; font-family: var(--font-body); background: var(--white); color: var(--dark); }
+
+  .page { display: none; min-height: 100vh; }
+  .page.active { display: flex; flex-direction: column; }
+  .page.fullheight { height: 100vh; overflow: hidden; }
+
+  /* ─── LOGO ─── */
+  .logo { display: flex; align-items: center; gap: 8px; cursor: pointer; text-decoration: none; }
+  .logo-icon { width: 28px; height: 28px; }
+  .logo-text { font-family: var(--font-display); font-weight: 700; font-size: 20px; letter-spacing: -0.3px; }
+  .logo-text span { color: var(--red); }
+
+  /* ─── LANDING PAGE ─── */
+  #page-landing { background: var(--white); }
+
+  .nav-landing {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 40px; background: var(--white);
+    border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100;
+  }
+  .nav-landing .logo-text { color: var(--dark); }
+  .nav-actions { display: flex; align-items: center; gap: 20px; }
+  .btn-ghost { background: none; border: none; cursor: pointer; font-family: var(--font-body); font-size: 14px; color: var(--gray); font-weight: 500; padding: 8px 12px; transition: color .2s; }
+  .btn-ghost:hover { color: var(--dark); }
+  .btn-red { background: var(--red); color: #fff; border: none; border-radius: 8px; padding: 10px 20px; font-family: var(--font-body); font-size: 14px; font-weight: 600; cursor: pointer; transition: background .2s, transform .15s; }
+  .btn-red:hover { background: var(--red-dark); transform: translateY(-1px); }
+
+  .hero {
+    background: var(--cream); padding: 80px 40px 100px;
+    text-align: center; flex-shrink: 0;
+  }
+  .hero h1 { font-family: var(--font-display); font-size: 52px; font-weight: 800; line-height: 1.1; letter-spacing: -1.5px; }
+  .hero h1 span { color: var(--red); }
+  .hero p { margin-top: 18px; font-size: 15px; color: var(--gray); max-width: 420px; margin-left: auto; margin-right: auto; line-height: 1.7; }
+
+  .use-cases { padding: 60px 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 28px; max-width: 960px; margin: 0 auto; }
+
+  .card {
+    border-radius: 16px; overflow: hidden; border: 1px solid var(--border);
+    background: var(--white); transition: box-shadow .25s, transform .25s;
+  }
+  .card:hover { box-shadow: 0 16px 40px rgba(0,0,0,.1); transform: translateY(-3px); }
+  .card-img { height: 200px; overflow: hidden; }
+  .card-img img { width: 100%; height: 100%; object-fit: cover; }
+  .card-img-placeholder { width: 100%; height: 100%; background: linear-gradient(135deg, #2d4a3e 0%, #1a3a2a 50%, #0d2018 100%); }
+  .card-body { padding: 24px; }
+  .card-icon { width: 36px; height: 36px; background: var(--red-light); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+  .card-icon svg { color: var(--red); }
+  .card-body h3 { font-family: var(--font-display); font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+  .card-body p { font-size: 13px; color: var(--gray); line-height: 1.65; margin-bottom: 14px; }
+  .card-checks { list-style: none; margin-bottom: 16px; }
+  .card-checks li { font-size: 12.5px; color: var(--gray); display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .card-checks li::before { content: '✓'; color: var(--red); font-weight: 700; }
+  .card-link { color: var(--red); font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px; }
+  .card-link:hover { text-decoration: underline; }
+
+  .cta-section { background: var(--dark); padding: 80px 40px; text-align: center; flex-shrink: 0; }
+  .cta-section h2 { font-family: var(--font-display); font-size: 36px; font-weight: 800; color: #fff; letter-spacing: -0.8px; }
+  .cta-section p { font-size: 15px; color: #aaa; margin: 14px auto 36px; max-width: 440px; line-height: 1.7; }
+  .btn-red-lg { background: var(--red); color: #fff; border: none; border-radius: 10px; padding: 16px 36px; font-family: var(--font-body); font-size: 16px; font-weight: 600; cursor: pointer; transition: background .2s, transform .15s; }
+  .btn-red-lg:hover { background: var(--red-dark); transform: translateY(-2px); }
+
+  .footer-landing { background: #F7F5F0; border-top: 1px solid var(--border); padding: 48px 40px 24px; }
+  .footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 40px; max-width: 960px; margin: 0 auto 40px; }
+  .footer-brand p { font-size: 13px; color: var(--gray); line-height: 1.7; margin-top: 12px; max-width: 220px; }
+  .footer-col h4 { font-family: var(--font-display); font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--dark); margin-bottom: 14px; }
+  .footer-col a { display: block; font-size: 13px; color: var(--gray); text-decoration: none; margin-bottom: 8px; transition: color .2s; }
+  .footer-col a:hover { color: var(--red); }
+  .footer-bottom { border-top: 1px solid var(--border); padding-top: 20px; display: flex; justify-content: space-between; align-items: center; max-width: 960px; margin: 0 auto; }
+  .footer-bottom p { font-size: 12px; color: var(--gray-light); }
+  .social-links { display: flex; gap: 14px; }
+  .social-links a { color: var(--gray); transition: color .2s; }
+  .social-links a:hover { color: var(--dark); }
+
+  /* ─── AUTH PAGES ─── */
+  #page-login, #page-signup {
+    min-height: 100vh; background: #0A0A0A;
+    align-items: stretch; flex-direction: column;
+    background-image: radial-gradient(ellipse 60% 60% at 20% 80%, rgba(180,30,20,.3) 0%, transparent 60%);
+  }
+
+  .auth-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 40px; flex-shrink: 0;
+  }
+  .auth-nav .logo-text { color: var(--white); }
+  .auth-nav-link { font-size: 14px; color: #888; text-decoration: none; cursor: pointer; }
+  .auth-nav-link:hover { color: #fff; }
+
+  .auth-body { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; }
+
+  .auth-card {
+    background: #1A1A1A; border-radius: 20px; padding: 44px 48px;
+    width: 100%; max-width: 480px; border: 1px solid #2A2A2A;
+    box-shadow: 0 40px 100px rgba(0,0,0,.6);
+  }
+  #page-signup .auth-card { background: #2A1010; border-color: #3D1818; }
+
+  .auth-card h2 { font-family: var(--font-display); font-size: 30px; font-weight: 700; color: #fff; text-align: center; margin-bottom: 8px; letter-spacing: -0.5px; }
+  .auth-card .subtitle { font-size: 14px; color: #888; text-align: center; margin-bottom: 32px; line-height: 1.6; }
+
+  .form-group { margin-bottom: 20px; }
+  .form-group label { display: block; font-size: 13px; font-weight: 600; color: #ccc; margin-bottom: 8px; letter-spacing: 0.3px; }
+  #page-signup .form-group label { text-transform: uppercase; font-size: 11px; letter-spacing: 1.5px; }
+  .form-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .form-row label { margin-bottom: 0; }
+  .forgot-link { font-size: 13px; color: var(--red); text-decoration: none; font-weight: 500; cursor: pointer; }
+  .forgot-link:hover { text-decoration: underline; }
+
+  .input-wrap { position: relative; }
+  .input-wrap svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #555; pointer-events: none; }
+  .input-wrap input {
+    width: 100%; background: #111; border: 1px solid #2D2D2D; border-radius: 10px;
+    padding: 14px 14px 14px 44px; font-family: var(--font-body); font-size: 14px; color: #fff;
+    outline: none; transition: border-color .2s;
+  }
+  #page-signup .input-wrap input { background: #1E0E0E; border-color: #3A1A1A; }
+  .input-wrap input::placeholder { color: #444; }
+  .input-wrap input:focus { border-color: var(--red); }
+  .eye-btn { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #555; padding: 4px; }
+  .eye-btn:hover { color: #aaa; }
+
+  .remember-row { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
+  .remember-row input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--red); cursor: pointer; }
+  .remember-row label { font-size: 13px; color: #888; cursor: pointer; }
+
+  .btn-auth {
+    width: 100%; background: var(--red); color: #fff; border: none; border-radius: 10px;
+    padding: 15px; font-family: var(--font-body); font-size: 16px; font-weight: 700;
+    cursor: pointer; transition: background .2s, transform .15s; margin-bottom: 24px;
+  }
+  .btn-auth:hover { background: var(--red-dark); transform: translateY(-1px); }
+
+  .divider { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #2D2D2D; }
+  .divider span { font-size: 12px; color: #555; }
+
+  .btn-social {
+    width: 100%; background: transparent; border: 1px solid #2D2D2D; border-radius: 10px;
+    padding: 13px; font-family: var(--font-body); font-size: 14px; font-weight: 500;
+    color: #ccc; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    gap: 10px; margin-bottom: 12px; transition: background .2s, border-color .2s;
+  }
+  #page-signup .btn-social { border-color: #3A1A1A; }
+  .btn-social:hover { background: #222; border-color: #444; }
+  #page-signup .btn-social:hover { background: #301515; }
+
+  .auth-footer { text-align: center; margin-top: 24px; font-size: 14px; color: #555; }
+  .auth-footer a { color: var(--white); text-decoration: none; font-weight: 600; cursor: pointer; }
+  .auth-footer a:hover { color: var(--red); }
+
+  .auth-page-footer { text-align: center; padding: 20px; font-size: 11px; color: #333; letter-spacing: 1.5px; text-transform: uppercase; }
+  .auth-page-footer a { color: #444; text-decoration: none; margin: 0 12px; }
+  .auth-page-footer a:hover { color: #888; }
+
+  /* Dots indicator */
+  .auth-dots { display: flex; justify-content: center; gap: 8px; padding-bottom: 24px; }
+  .auth-dots span { width: 8px; height: 8px; border-radius: 50%; background: #333; }
+  .auth-dots span.active { background: var(--red); }
+
+  /* ─── MAP PAGE ─── */
+  #page-map {
+    display: none; flex-direction: column; height: 100vh; overflow: hidden;
+    background: var(--white);
+  }
+  #page-map.active { display: flex; }
+
+  .nav-map {
+    display: flex; align-items: center; padding: 0 24px;
+    height: 56px; border-bottom: 1px solid var(--border);
+    background: var(--white); gap: 32px; flex-shrink: 0; z-index: 200;
+  }
+  .nav-map .logo-text { color: var(--dark); }
+  .nav-map-links { display: flex; gap: 28px; }
+  .nav-map-link { font-size: 14px; font-weight: 500; color: var(--gray); text-decoration: none; cursor: pointer; padding-bottom: 2px; border-bottom: 2px solid transparent; transition: color .2s; }
+  .nav-map-link.active { color: var(--red); border-color: var(--red); }
+  .nav-map-link:hover { color: var(--dark); }
+
+  .nav-map-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .search-box {
+    display: flex; align-items: center; gap: 8px;
+    border: 1px solid var(--border); border-radius: 8px; padding: 7px 14px;
+    background: var(--white); min-width: 220px;
+  }
+  .search-box input { border: none; outline: none; font-family: var(--font-body); font-size: 13px; color: var(--dark); background: none; width: 100%; }
+  .search-box input::placeholder { color: var(--gray-light); }
+  .btn-search { background: var(--red); color: #fff; border: none; border-radius: 7px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-body); }
+  .btn-search:hover { background: var(--red-dark); }
+  .avatar { width: 34px; height: 34px; border-radius: 50%; background: #ccc; overflow: hidden; cursor: pointer; border: 2px solid var(--border); }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+  .map-layout { flex: 1; display: flex; overflow: hidden; }
+
+  /* Sidebar */
+  .map-sidebar {
+    width: 280px; background: var(--sidebar-bg); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; overflow-y: auto; flex-shrink: 0;
+  }
+  .sidebar-header { padding: 20px 20px 14px; border-bottom: 1px solid var(--border); }
+  .sidebar-header h2 { font-family: var(--font-display); font-size: 16px; font-weight: 700; }
+  .sidebar-header p { font-size: 12px; color: var(--gray); margin-top: 3px; }
+
+  .sidebar-section { padding: 16px 20px; }
+  .sidebar-section-title { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--gray-light); margin-bottom: 10px; }
+
+  .layer-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 8px; cursor: pointer;
+    transition: background .15s; margin-bottom: 2px;
+  }
+  .layer-item:hover { background: rgba(0,0,0,.05); }
+  .layer-item.active { background: var(--red); color: #fff; }
+  .layer-item .layer-icon { font-size: 16px; flex-shrink: 0; }
+  .layer-item span { font-size: 13.5px; font-weight: 500; }
+  .layer-item.active span { color: #fff; }
+
+  .region-select {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+    border-radius: 8px; background: var(--white); font-family: var(--font-body);
+    font-size: 13px; color: var(--dark); outline: none; cursor: pointer;
+    appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center;
+  }
+
+  .time-period { margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+  .time-period .label { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--gray-light); }
+  .time-period .value { font-size: 12px; font-weight: 600; color: var(--red); }
+
+  .range-slider { width: 100%; -webkit-appearance: none; height: 3px; background: linear-gradient(to right, var(--red) 0%, var(--red) 60%, #ddd 60%); border-radius: 2px; outline: none; margin: 10px 0; }
+  .range-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--red); border-radius: 50%; cursor: pointer; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+
+  .btn-advanced {
+    width: 100%; border: 1.5px solid var(--red); background: transparent; border-radius: 8px;
+    padding: 10px; font-family: var(--font-body); font-size: 13px; color: var(--red);
+    font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-bottom: 16px; transition: background .15s;
+  }
+  .btn-advanced:hover { background: var(--red-light); }
+
+  .legend { padding: 14px; background: var(--white); border-radius: 10px; border: 1px solid var(--border); margin: 0 20px; }
+  .legend h4 { font-size: 12px; font-weight: 700; margin-bottom: 10px; }
+  .legend-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 12px; color: var(--gray); }
+  .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+
+  .sidebar-bottom { margin-top: auto; padding: 16px 20px; }
+  .btn-export {
+    width: 100%; background: var(--dark); color: #fff; border: none; border-radius: 10px;
+    padding: 12px; font-family: var(--font-body); font-size: 13px; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: background .2s;
+  }
+  .btn-export:hover { background: #333; }
+
+  /* Map area */
+  .map-area { flex: 1; position: relative; overflow: hidden; }
+
+  #leaflet-map { width: 100%; height: 100%; }
+
+  .map-tabs {
+    position: absolute; top: 16px; left: 16px; z-index: 500;
+    background: var(--white); border-radius: 10px; padding: 4px;
+    display: flex; gap: 2px; box-shadow: 0 2px 12px rgba(0,0,0,.15); border: 1px solid var(--border);
+  }
+  .map-tab {
+    padding: 8px 18px; border-radius: 7px; font-size: 13px; font-weight: 500;
+    cursor: pointer; border: none; background: none; font-family: var(--font-body);
+    transition: background .15s; color: var(--dark);
+  }
+  .map-tab.active { background: var(--red); color: #fff; }
+  .map-tab:hover:not(.active) { background: rgba(0,0,0,.06); }
+
+  .map-controls {
+    position: absolute; top: 16px; right: 16px; z-index: 500;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .map-ctrl-btn {
+    width: 36px; height: 36px; background: var(--white); border: 1px solid var(--border);
+    border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 18px; color: var(--dark); box-shadow: 0 1px 6px rgba(0,0,0,.1);
+    transition: background .15s;
+  }
+  .map-ctrl-btn:hover { background: #f5f5f5; }
+
+  .map-status {
+    position: absolute; bottom: 0; left: 0; right: 0; z-index: 500;
+    background: rgba(255,255,255,.9); backdrop-filter: blur(4px);
+    border-top: 1px solid var(--border); padding: 8px 18px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .map-coords { font-size: 11px; font-weight: 600; letter-spacing: 0.8px; color: var(--dark); display: flex; gap: 20px; }
+  .map-copyright { font-size: 11px; color: var(--gray-light); }
+
+  /* Heatmap overlay */
+  #heatmap-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 400; opacity: 0.72; }
+
+  /* ─── SAVED PAGE ─── */
+  #page-saved {
+    background: var(--dark2); color: var(--white); min-height: 100vh;
+  }
+
+  .nav-saved {
+    display: flex; align-items: center; padding: 0 32px;
+    height: 60px; background: var(--dark); border-bottom: 1px solid #2A2A2A;
+    gap: 32px; flex-shrink: 0;
+  }
+  .nav-saved .logo-text { color: var(--white); }
+  .nav-saved-links { display: flex; gap: 28px; }
+  .nav-saved-link { font-size: 14px; font-weight: 500; color: #666; text-decoration: none; cursor: pointer; padding-bottom: 2px; border-bottom: 2px solid transparent; transition: color .2s; }
+  .nav-saved-link.active { color: var(--red); border-color: var(--red); }
+  .nav-saved-link:hover { color: #ccc; }
+
+  .nav-saved-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+  .search-dark {
+    display: flex; align-items: center; gap: 8px;
+    border: 1px solid #333; border-radius: 8px; padding: 8px 14px;
+    background: #1E1E1E; min-width: 240px;
+  }
+  .search-dark input { border: none; outline: none; font-family: var(--font-body); font-size: 13px; color: var(--white); background: none; width: 100%; }
+  .search-dark input::placeholder { color: #555; }
+
+  .notif-btn { width: 36px; height: 36px; background: #2A2A2A; border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #aaa; position: relative; }
+  .notif-btn:hover { background: #333; }
+
+  .saved-content { padding: 40px 32px; max-width: 1180px; margin: 0 auto; }
+  .saved-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+  .saved-header h1 { font-family: var(--font-display); font-size: 32px; font-weight: 800; letter-spacing: -0.5px; }
+
+  .filter-tabs { display: flex; gap: 4px; }
+  .filter-tab { padding: 9px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid #333; background: transparent; color: #888; font-family: var(--font-body); transition: all .15s; }
+  .filter-tab.active { background: var(--red); border-color: var(--red); color: #fff; }
+  .filter-tab:hover:not(.active) { background: #2A2A2A; color: #ccc; }
+
+  .saved-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+
+  .saved-card {
+    background: #1A1A1A; border-radius: 14px; overflow: hidden; border: 1px solid #2A2A2A;
+    cursor: pointer; transition: transform .2s, box-shadow .2s;
+  }
+  .saved-card:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(0,0,0,.5); }
+  .saved-card.new-card { border: 2px dashed #333; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 260px; cursor: pointer; transition: border-color .2s, background .2s; }
+  .saved-card.new-card:hover { border-color: var(--red); background: #200D0D; }
+
+  .saved-card-thumb { position: relative; height: 180px; overflow: hidden; }
+  .saved-card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .card-badge { position: absolute; top: 10px; left: 10px; background: var(--red); color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 1px; padding: 4px 8px; border-radius: 5px; }
+
+  .saved-card-body { padding: 16px; }
+  .saved-card-body h3 { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .saved-card-meta { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #555; margin-bottom: 12px; }
+  .saved-card-footer { display: flex; justify-content: space-between; align-items: center; }
+  .saved-card-tags { font-size: 11.5px; color: #555; }
+  .view-link { font-size: 12.5px; color: var(--red); font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px; }
+
+  .plus-circle { width: 52px; height: 52px; background: #2A1010; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; border: 1.5px solid #3D1818; }
+  .new-card h3 { font-size: 15px; font-weight: 700; color: #aaa; margin-bottom: 6px; }
+  .new-card p { font-size: 12px; color: #555; }
+
+  .pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 40px; padding-bottom: 20px; }
+  .page-btn { width: 36px; height: 36px; border-radius: 8px; border: 1px solid #333; background: transparent; color: #777; font-family: var(--font-body); font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+  .page-btn.active { background: var(--red); border-color: var(--red); color: #fff; }
+  .page-btn:hover:not(.active) { background: #2A2A2A; color: #ccc; }
+
+  .saved-footer { background: var(--dark); border-top: 1px solid #2A2A2A; padding: 20px 32px; display: flex; justify-content: space-between; align-items: center; }
+  .saved-footer-brand { display: flex; align-items: center; gap: 8px; }
+  .saved-footer-brand .logo-text { color: #fff; font-size: 14px; }
+  .saved-footer p { font-size: 12px; color: #444; margin-top: 4px; }
+  .saved-footer-links { display: flex; gap: 24px; }
+  .saved-footer-links a { font-size: 13px; color: #555; text-decoration: none; transition: color .2s; }
+  .saved-footer-links a:hover { color: #ccc; }
+
+  /* ─── TOAST ─── */
+  .toast {
+    position: fixed; bottom: 28px; right: 28px; z-index: 9999;
+    background: var(--dark); color: #fff; padding: 14px 22px; border-radius: 10px;
+    font-size: 14px; font-weight: 500; box-shadow: 0 8px 30px rgba(0,0,0,.4);
+    transform: translateY(80px); opacity: 0; transition: all .3s ease;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast .toast-icon { color: #4CAF50; font-size: 18px; }
+
+  /* ─── MISC ─── */
+  .leaflet-control-zoom { display: none !important; }
+  .leaflet-attribution-flag { display: none !important; }
+
+  /* Map satellite-style placeholder bg */
+  .map-bg-placeholder {
+    position: absolute; inset: 0; z-index: 1;
+    background: #2d4a3e;
+  }
+
+  @media (max-width: 768px) {
+    .use-cases { grid-template-columns: 1fr; }
+    .saved-grid { grid-template-columns: 1fr 1fr; }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+    .map-sidebar { width: 230px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     LANDING PAGE
+═══════════════════════════════════════════ -->
+<div id="page-landing" class="page active">
+  <!-- Nav -->
+  <nav class="nav-landing">
+    <a class="logo" onclick="navigate('landing')">
+      <svg class="logo-icon" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="14" cy="11" r="9" fill="#E8312A"/>
+        <path d="M14 20C14 20 6 27 6 11C6 6.582 9.582 3 14 3C18.418 3 22 6.582 22 11C22 27 14 20 14 20Z" fill="#E8312A"/>
+        <circle cx="14" cy="11" r="4" fill="white"/>
+      </svg>
+      <span class="logo-text">Geo<span>Pik</span></span>
+    </a>
+    <div class="nav-actions">
+      <button class="btn-ghost" onclick="navigate('login')">Log In</button>
+      <button class="btn-ghost" onclick="navigate('signup')">Sign Up</button>
+      <button class="btn-red" onclick="navigate('map')">Explore Map</button>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <h1>Industry-Leading <span>Data Intelligence</span></h1>
+    <p>Transform complex geospatial data into actionable insights. Explore how GeoPik empowers organizations across diverse sectors to make smarter, location-driven decisions.</p>
+  </section>
+
+  <!-- Use Cases -->
+  <section class="use-cases">
+    <!-- Urban Planning -->
+    <div class="card">
+      <div class="card-img">
+        <img src="https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=600&q=80" alt="Urban Planning" onerror="this.parentElement.innerHTML='<div class=card-img-placeholder></div>'">
+      </div>
+      <div class="card-body">
+        <div class="card-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E8312A" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+        </div>
+        <h3>Urban Planning</h3>
+        <p>Optimize city infrastructure and public services using real-time population movement and land-use analysis. Identify high-demand zones for transit, green spaces, and utility expansion with pinpoint accuracy.</p>
+        <ul class="card-checks">
+          <li>Mobility &amp; Traffic Modeling</li>
+          <li>Site Suitability Analysis</li>
+        </ul>
+        <a class="card-link" onclick="navigate('map')">Learn more →</a>
+      </div>
+    </div>
+
+    <!-- Environmental Monitoring -->
+    <div class="card">
+      <div class="card-img">
+        <img src="https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&q=80" alt="Environmental" onerror="this.parentElement.innerHTML='<div class=card-img-placeholder></div>'">
+      </div>
+      <div class="card-body">
+        <div class="card-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E8312A" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h3>Environmental Monitoring</h3>
+        <p>Track ecological changes, air quality, and vegetation health over time. Our high-resolution data helps organizations meet sustainability goals and monitor disaster-prone regions.</p>
+        <ul class="card-checks">
+          <li>Carbon Footprint Tracking</li>
+          <li>Risk &amp; Resilience Assessment</li>
+        </ul>
+        <a class="card-link" onclick="navigate('map')">Learn more →</a>
+      </div>
+    </div>
+
+    <!-- Logistics Optimization -->
+    <div class="card">
+      <div class="card-img">
+        <img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=600&q=80" alt="Logistics" onerror="this.parentElement.innerHTML='<div class=card-img-placeholder></div>'">
+      </div>
+      <div class="card-body">
+        <div class="card-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E8312A" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><path d="m16 8 5 0 3 3v5h-8V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        </div>
+        <h3>Logistics Optimization</h3>
+        <p>Streamline supply chains with intelligent routing and asset tracking. Reduce operational costs by analyzing transit patterns and predicting bottlenecks before they happen.</p>
+        <ul class="card-checks">
+          <li>Last-Mile Routing Efficiency</li>
+          <li>Supply Chain Visualization</li>
+        </ul>
+        <a class="card-link" onclick="navigate('map')">Learn more →</a>
+      </div>
+    </div>
+
+    <!-- Retail Analytics -->
+    <div class="card">
+      <div class="card-img">
+        <img src="https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=600&q=80" alt="Retail Analytics" onerror="this.parentElement.innerHTML='<div class=card-img-placeholder></div>'">
+      </div>
+      <div class="card-body">
+        <div class="card-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E8312A" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        </div>
+        <h3>Retail Analytics</h3>
+        <p>Understand consumer catchments and competitor proximities. Use location intelligence to select the best sites for new stores and optimize marketing reach based on footfall data.</p>
+        <ul class="card-checks">
+          <li>Catchment Area Analysis</li>
+          <li>Footfall &amp; Trade Zone Insights</li>
+        </ul>
+        <a class="card-link" onclick="navigate('map')">Learn more →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <h2>Ready to unlock your spatial potential?</h2>
+    <p>Join hundreds of companies using GeoPik to drive growth and operational excellence through location intelligence.</p>
+    <button class="btn-red-lg" onclick="navigate('signup')">Get Started for Free</button>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer-landing">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a class="logo" onclick="navigate('landing')">
+          <svg class="logo-icon" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="11" r="9" fill="#E8312A"/><path d="M14 20C14 20 6 27 6 11C6 6.582 9.582 3 14 3C18.418 3 22 6.582 22 11C22 27 14 20 14 20Z" fill="#E8312A"/><circle cx="14" cy="11" r="4" fill="white"/></svg>
+          <span class="logo-text" style="color:#111">Geo<span>Pik</span></span>
+        </a>
+        <p>Building the world's most accessible location intelligence platform for modern enterprises.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a href="#">Features</a>
+        <a href="#">Integrations</a>
+        <a href="#">Pricing</a>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <a href="#">Documentation</a>
+        <a href="#">API Reference</a>
+        <a href="#">Community</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="#">About Us</a>
+        <a href="#">Careers</a>
+        <a href="#">Privacy Policy</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 GeoPik Data Intelligence Inc. All rights reserved.</p>
+      <div class="social-links">
+        <a href="#" title="Twitter">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/></svg>
+        </a>
+        <a href="#" title="LinkedIn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+        </a>
+      </div>
+    </div>
+  </footer>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     LOGIN PAGE
+═══════════════════════════════════════════ -->
+<div id="page-login" class="page" style="background:#0A0A0A; background-image: radial-gradient(ellipse 60% 60% at 20% 80%, rgba(180,30,20,.3) 0%, transparent 60%);">
+  <nav class="auth-nav">
+    <a class="logo" onclick="navigate('landing')">
+      <svg class="logo-icon" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="11" r="9" fill="#E8312A"/><path d="M14 20C14 20 6 27 6 11C6 6.582 9.582 3 14 3C18.418 3 22 6.582 22 11C22 27 14 20 14 20Z" fill="#E8312A"/><circle cx="14" cy="11" r="4" fill="white"/></svg>
+      <span class="logo-text">Geo<span style="color:#E8312A">Pik</span></span>
+    </a>
+    <a class="auth-nav-link" onclick="navigate('signup')">Don't have an account? <strong style="color:#fff">Sign up</strong></a>
+  </nav>
+
+  <div class="auth-body">
+    <div class="auth-card">
+      <h2>Welcome Back</h2>
+      <p class="subtitle">Enter your credentials to access your dashboard</p>
+
+      <div class="form-group">
+        <label>Email Address</label>
+        <div class="input-wrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <input type="email" id="login-email" placeholder="name@company.com" value="">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="form-row">
+          <label>Password</label>
+          <a class="forgot-link">Forgot password?</a>
+        </div>
+        <div class="input-wrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input type="password" id="login-password" placeholder="••••••••">
+          <button class="eye-btn" onclick="togglePassword('login-password', this)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="remember-row">
+        <input type="checkbox" id="remember">
+        <label for="remember">Remember this device</label>
+      </div>
+
+      <button class="btn-auth" onclick="doLogin()">Log In</button>
+
+      <div class="divider"><span>Or continue with</span></div>
+
+      <button class="btn-social" onclick="doLogin()">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continue with Google
+      </button>
+
+      <button class="btn-social" onclick="doLogin()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+        Sign in with SSO
+      </button>
+
+      <div class="auth-footer">
+        Don't have an account? <a onclick="navigate('signup')">Sign up</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-dots">
+    <span class="active"></span><span></span><span></span>
+  </div>
+
+  <footer style="text-align:center; padding: 16px; font-size: 12px; color: #333;">
+    <a href="#" style="color:#444; text-decoration:none; margin: 0 12px;">Privacy Policy</a>
+    <a href="#" style="color:#444; text-decoration:none; margin: 0 12px;">Terms of Service</a>
+    <a href="#" style="color:#444; text-decoration:none; margin: 0 12px;">Help Center</a>
+  </footer>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     SIGN UP PAGE
+═══════════════════════════════════════════ -->
+<div id="page-signup" class="page" style="background:#0A0A0A; background-image: radial-gradient(ellipse 60% 60% at 80% 80%, rgba(140,20,10,.4) 0%, transparent 60%);">
+  <nav class="auth-nav">
+    <a class="logo" onclick="navigate('landing')">
+      <svg class="logo-icon" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="11" r="9" fill="#E8312A"/><path d="M14 20C14 20 6 27 6 11C6 6.582 9.582 3 14 3C18.418 3 22 6.582 22 11C22 27 14 20 14 20Z" fill="#E8312A"/><circle cx="14" cy="11" r="4" fill="white"/></svg>
+      <span class="logo-text">Geo<span style="color:#E8312A">Pik</span></span>
+    </a>
+  </nav>
+
+  <div class="auth-body">
+    <div class="auth-card">
+      <h2 style="text-align:left; font-size:34px;">Join GeoPik</h2>
+      <p class="subtitle" style="text-align:left; margin-bottom:28px;">Start your mapping journey with us today.</p>
+
+      <div class="form-group">
+        <label>Full Name</label>
+        <div class="input-wrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <input type="text" id="signup-name" placeholder="Enter your full name">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Email</label>
+        <div class="input-wrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <input type="email" id="signup-email" placeholder="name@example.com">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <div class="input-wrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input type="password" id="signup-password" placeholder="Create a strong password">
+          <button class="eye-btn" onclick="togglePassword('signup-password', this)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <button class="btn-auth" style="margin-top:8px;" onclick="doSignup()">Create Account</button>
+
+      <div class="divider"><span>OR</span></div>
+
+      <button class="btn-social" onclick="doSignup()">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continue with Google
+      </button>
+
+      <button class="btn-social" onclick="doSignup()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+        Single Sign-On (SSO)
+      </button>
+
+      <div style="margin-top: 20px; border-top: 1px solid #3A1A1A; padding-top: 20px;"></div>
+
+      <div class="auth-footer">
+        Already have an account? <a onclick="navigate('login')">Log In</a>
+      </div>
+    </div>
+  </div>
+
+  <footer style="text-align:center; padding: 20px; font-size: 11px; color: #333; letter-spacing: 1.5px; text-transform: uppercase;">
+    © 2026 GEOPIK GLOBAL SYSTEMS
+  </footer>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     MAP / EXPLORE PAGE
+═══════════════════════════════════════════ -->
+<div id="page-map" class="page fullheight">
+  <!-- Nav -->
+  <nav class="nav-map">
+    <a class="logo" onclick="navigate('landing')" style="flex-shrink:0;">
+      <svg class="logo-icon" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="11" r="9" fill="#E8312A"/><path d="M14 20C14 20 6 27 6 11C6 6.582 9.582 3 14 3C18.418 3 22 6.582 22 11C22 27 14 20 14 20Z" fill="#E8312A"/><circle cx="14" cy="11" r="4" fill="white"/></svg>
+      <span class="logo-text">Geo<span>Pik</span></span>
+    </a>
+    <div class="nav-map-links">
+      <a class="nav-map-link" onclick="navigate('saved')">Saved</a>
+      <a class="nav-map-link active">Explore Map</a>
+    </div>
+    <div class="nav-map-right">
+      <div class="search-box">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="map-search-input" placeholder="Search Location" onkeydown="if(event.key==='Enter') searchLocation()">
+      </div>
+      <button class="btn-search" onclick="searchLocation()">Search</button>
+      <div class="avatar" onclick="navigate('saved')">
+        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:34px;height:34px;background:#555;border-radius:50%">
+          <circle cx="18" cy="13" r="7" fill="#888"/>
+          <path d="M6 32c0-6.627 5.373-12 12-12s12 5.373 12 12" fill="#888"/>
+        </svg>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Map Layout -->
+  <div class="map-layout">
+    <!-- Sidebar -->
+    <aside class="map-sidebar">
+      <div class="sidebar-header">
+        <h2>Map Filters</h2>
+        <p>Customize your intelligence view</p>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Data Layers</div>
+        <div id="layer-list"></div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Region</div>
+        <select class="region-select" id="region-select" onchange="updateRegion()">
+          <option>Region X</option>
+          <option>North America</option>
+          <option>Europe</option>
+          <option>Asia Pacific</option>
+          <option>Latin America</option>
+          <option>Middle East & Africa</option>
+        </select>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="time-period">
+          <span class="label">Time Period</span>
+          <span class="value" id="time-range-label">2020 - 2024</span>
+        </div>
+        <input type="range" class="range-slider" min="2015" max="2024" value="2020" id="time-range-start" oninput="updateTimeRange()">
+        <input type="range" class="range-slider" min="2015" max="2024" value="2024" id="time-range-end" oninput="updateTimeRange()">
+      </div>
+
+      <div class="sidebar-section" style="padding-bottom:8px;">
+        <button class="btn-advanced" onclick="showToast('Advanced filters panel coming soon!')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+          Advanced Filters
+        </button>
+
+        <div class="legend">
+          <h4>Legend</h4>
+          <div id="legend-items"></div>
+        </div>
+      </div>
+
+      <div class="sidebar-bottom">
+        <button class="btn-export" onclick="exportData()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export Data (CSV)
+        </button>
+      </div>
+    </aside>
+
+    <!-- Map -->
+    <div class="map-area">
+      <!-- Map Tabs -->
+      <div class="map-tabs">
+        <button class="map-tab active" onclick="switchTab('Crime', this)">Crime</button>
+        <button class="map-tab" onclick="switchTab('Disaster', this)">Disaster</button>
+        <button class="map-tab" onclick="switchTab('Tourism', this)">Tourism</button>
+        <button class="map-tab" onclick="switchTab('Healthcare', this)">Healthcare</button>
+      </div>
+
+      <!-- Map Controls -->
+      <div class="map-controls">
+        <button class="map-ctrl-btn" onclick="mapZoomIn()" title="Zoom In">+</button>
+        <button class="map-ctrl-btn" onclick="mapZoomOut()" title="Zoom Out">−</button>
+        <button class="map-ctrl-btn" onclick="mapLocate()" title="My Location" style="margin-top:4px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
+        </button>
+      </div>
+
+      <!-- Leaflet Map -->
+      <div id="leaflet-map"></div>
+
+      <!-- Heatmap Canvas Overlay -->
+      <canvas id="heatmap-canvas"></canvas>
+
+      <!-- Status Bar -->
+      <div class="map-status">
+        <div class="map-coords">
+          <span id="map-lat">LAT 35.6764° N</span>
+          <span id="map-lon">LONG 139.6500° E</span>
+          <span>RESOLUTION 0.5m / px</span>
+        </div>
+        <div class="map-copyright">© 2026 GeoPik Intelligence. Map data from OpenStreetMap.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     SAVED MAPS PAGE
+═══════════════════════════════════════════ -->
+<div id="page-saved" class="page">
+  <!-- Nav -->
+  <nav class="nav-saved">
+    <a class="logo" onclick="navigate('landing')">
+      <svg class="logo-icon" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="11" r="9" fill="#E8312A"/><path d="M14 20C14 20 6 27 6 11C6 6.582 9.582 3 14 3C18.418 3 22 6.582 22 11C22 27 14 20 14 20Z" fill="#E8312A"/><circle cx="14" cy="11" r="4" fill="white"/></svg>
+      <span class="logo-text">Geo<span style="color:#E8312A">Pik</span></span>
+    </a>
+    <div class="nav-saved-links">
+      <a class="nav-saved-link active">Saved</a>
+      <a class="nav-saved-link" onclick="navigate('map')">Reports</a>
+      <a class="nav-saved-link" onclick="navigate('map')">Explore Map</a>
+    </div>
+    <div class="nav-saved-right">
+      <div class="search-dark">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Search saved maps...">
+      </div>
+      <button class="notif-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </button>
+      <div class="avatar">
+        <svg viewBox="0 0 36 36" fill="none" style="width:34px;height:34px;background:#666;border-radius:50%">
+          <circle cx="18" cy="13" r="7" fill="#999"/>
+          <path d="M6 32c0-6.627 5.373-12 12-12s12 5.373 12 12" fill="#999"/>
+        </svg>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Content -->
+  <div class="saved-content">
+    <div class="saved-header">
+      <h1>Saved Maps &amp; Reports</h1>
+      <div class="filter-tabs">
+        <button class="filter-tab active" onclick="filterSaved('all', this)">All Items</button>
+        <button class="filter-tab" onclick="filterSaved('reports', this)">Reports</button>
+        <button class="filter-tab" onclick="filterSaved('maps', this)">Maps</button>
+      </div>
+    </div>
+
+    <div class="saved-grid" id="saved-grid">
+      <!-- Cards injected by JS -->
+    </div>
+
+    <div class="pagination">
+      <button class="page-btn">‹</button>
+      <button class="page-btn active">1</button>
+      <button class="page-btn" onclick="showToast('Loading page 2...')">2</button>
+      <button class="page-btn" onclick="showToast('Loading page 3...')">3</button>
+      <button class="page-btn" style="pointer-events:none;border:none;">…</button>
+      <button class="page-btn" onclick="showToast('Loading page 12...')">12</button>
+      <button class="page-btn">›</button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="saved-footer">
+    <div>
+      <div class="saved-footer-brand">
+        <svg width="18" height="18" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="4" fill="#333"/><circle cx="14" cy="11" r="6" fill="#E8312A"/><path d="M14 17C14 17 9 22 9 11C9 8.24 11.24 6 14 6C16.76 6 19 8.24 19 11C19 22 14 17 14 17Z" fill="#E8312A"/><circle cx="14" cy="11" r="3" fill="white"/></svg>
+        <span class="logo-text" style="font-size:14px;">Geo<span style="color:#E8312A">Pik</span></span>
+      </div>
+      <p>© 2024 GeoPik Intelligence. All spatial data rights reserved.</p>
+    </div>
+    <div class="saved-footer-links">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">API Docs</a>
+      <a href="#">Support</a>
+    </div>
+  </footer>
+</div>
+
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span class="toast-icon">✓</span>
+  <span id="toast-msg">Action complete</span>
+</div>
+
+
+<script>
+// ═══════════════════════ DATA ═══════════════════════
+const LAYERS = {
+  Crime: [
+    { icon: '👥', name: 'Domestic Violence' },
+    { icon: '🍸', name: 'DUI' },
+    { icon: '✋', name: 'Assault' },
+    { icon: '💊', name: 'Drug Offences' },
+    { icon: '🏠', name: 'Burglary' },
+    { icon: '💳', name: 'Fraud' },
+    { icon: '🎨', name: 'Vandalism' },
+    { icon: '💀', name: 'Murder' },
+    { icon: '🔫', name: 'Robbery' },
+  ],
+  Disaster: [
+    { icon: '🌊', name: 'Flood Risk' },
+    { icon: '📡', name: 'Earthquake Zones' },
+    { icon: '🌀', name: 'Storm Surge' },
+    { icon: '🌋', name: 'Volcanic Risk' },
+    { icon: '🌊', name: 'Tsunami Hazard' },
+    { icon: '⛰️', name: 'Landslide Prone Areas' },
+  ],
+  Tourism: [
+    { icon: '🏛️', name: 'Heritage Sites' },
+    { icon: '🏔️', name: 'Natural Landmarks' },
+    { icon: '🏖️', name: 'Beach Resorts' },
+    { icon: '🌿', name: 'Eco-Tourism Parks' },
+    { icon: '🏢', name: 'Cultural Centers' },
+    { icon: '🤿', name: 'Diving Spots' },
+  ],
+  Healthcare: [
+    { icon: '🏥', name: 'Hospitals' },
+    { icon: '💉', name: 'Vaccination Centers' },
+    { icon: '🩺', name: 'Clinics & Urgencies' },
+    { icon: '🧬', name: 'Research Facilities' },
+    { icon: '🚑', name: 'Emergency Services' },
+    { icon: '🏨', name: 'Health Districts' },
+  ],
+};
+
+const LEGENDS = {
+  Crime: [
+    { color: '#E8312A', label: 'High Concentration' },
+    { color: '#F97066', label: 'Medium Concentration' },
+    { color: '#FDB8B0', label: 'Low Concentration' },
+  ],
+  Disaster: [
+    { color: '#E8312A', label: 'High Concentration' },
+    { color: '#F97066', label: 'Medium Concentration' },
+    { color: '#FDB8B0', label: 'Low Concentration' },
+  ],
+  Tourism: [
+    { color: '#E8312A', label: 'Popular Destination' },
+    { color: '#F97066', label: 'Moderate Interest' },
+    { color: '#FDB8B0', label: 'Emerging Site' },
+  ],
+  Healthcare: [
+    { color: '#E8312A', label: 'High Density' },
+    { color: '#F97066', label: 'Medium Density' },
+    { color: '#FDB8B0', label: 'Low Density' },
+  ],
+};
+
+const SAVED_ITEMS = [
+  { type: 'MAP VIEW', title: 'Manila Crime Density 2023', edited: 'Edited 2 days ago', tags: 'GIS Data • JSON', img: 'https://images.unsplash.com/photo-1524661135-423995f22d0b?w=400&q=80' },
+  { type: 'MAP VIEW', title: 'Quezon City Heatmap', edited: 'Edited 5 days ago', tags: 'Population • Layered', img: 'https://images.unsplash.com/photo-1596008194705-2091cd6764d4?w=400&q=80' },
+  { type: 'REPORT', title: 'Davao Commercial Zoning', edited: 'Generated 1 week ago', tags: 'PDF • 24 Pages', img: 'https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=400&q=80' },
+  { type: 'MAP VIEW', title: 'Cebu Flood Risk Analysis', edited: 'Edited 2 weeks ago', tags: 'Elevation • Vector', img: 'https://images.unsplash.com/photo-1547427736-0dca1cc2c980?w=400&q=80' },
+  { type: 'REPORT', title: 'Makati Traffic Flow', edited: 'Generated 3 weeks ago', tags: 'CSV/PDF • Analytics', img: 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=400&q=80' },
+  { type: 'REPORT', title: 'Pasig River Quality Data', edited: 'Generated 1 month ago', tags: 'Environmental • Static', img: 'https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=400&q=80' },
+];
+
+// ═══════════════════════ STATE ═══════════════════════
+let currentPage = 'landing';
+let currentTab = 'Crime';
+let currentLayerIndex = 0;
+let mapInstance = null;
+let mapInitialized = false;
+let heatmapInterval = null;
+
+// ═══════════════════════ NAVIGATION ═══════════════════════
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const el = document.getElementById('page-' + page);
+  if (el) { el.classList.add('active'); currentPage = page; }
+  if (page === 'map' && !mapInitialized) { setTimeout(initMap, 100); }
+  if (page === 'saved') renderSavedGrid('all');
+  window.scrollTo(0, 0);
+}
+
+// ═══════════════════════ AUTH ═══════════════════════
+function togglePassword(id, btn) {
+  const input = document.getElementById(id);
+  if (input.type === 'password') { input.type = 'text'; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'; }
+  else { input.type = 'password'; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'; }
+}
+
+function doLogin() {
+  const email = document.getElementById('login-email').value;
+  const pass = document.getElementById('login-password').value;
+  if (!email || !pass) { showToast('Please fill in all fields', false); return; }
+  showToast('Welcome back! Redirecting...');
+  setTimeout(() => navigate('map'), 1000);
+}
+
+function doSignup() {
+  showToast('Account created! Welcome to GeoPik!');
+  setTimeout(() => navigate('map'), 1000);
+}
+
+// ═══════════════════════ MAP ═══════════════════════
+function initMap() {
+  if (mapInitialized) return;
+  mapInitialized = true;
+
+  mapInstance = L.map('leaflet-map', {
+    center: [35.6762, 139.6503],
+    zoom: 11,
+    zoomControl: false,
+    attributionControl: false
+  });
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: ''
+  }).addTo(mapInstance);
+
+  mapInstance.on('mousemove', function(e) {
+    document.getElementById('map-lat').textContent = 'LAT ' + Math.abs(e.latlng.lat).toFixed(4) + '° ' + (e.latlng.lat >= 0 ? 'N' : 'S');
+    document.getElementById('map-lon').textContent = 'LONG ' + Math.abs(e.latlng.lng).toFixed(4) + '° ' + (e.latlng.lng >= 0 ? 'E' : 'W');
+  });
+
+  mapInstance.on('moveend', drawHeatmap);
+  mapInstance.on('zoomend', drawHeatmap);
+
+  renderLayers();
+  setTimeout(drawHeatmap, 400);
+}
+
+function mapZoomIn() { if (mapInstance) mapInstance.zoomIn(); }
+function mapZoomOut() { if (mapInstance) mapInstance.zoomOut(); }
+function mapLocate() {
+  if (!mapInstance) return;
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      mapInstance.setView([pos.coords.latitude, pos.coords.longitude], 13);
+      showToast('Centered on your location');
+    }, () => showToast('Location access denied'));
+  } else { showToast('Geolocation not supported'); }
+}
+
+function searchLocation() {
+  const q = document.getElementById('map-search-input').value.trim();
+  if (!q) return;
+  fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`)
+    .then(r => r.json())
+    .then(data => {
+      if (data.length > 0) {
+        mapInstance.setView([parseFloat(data[0].lat), parseFloat(data[0].lon)], 12);
+        showToast('Found: ' + data[0].display_name.split(',').slice(0,2).join(','));
+        setTimeout(drawHeatmap, 500);
+      } else { showToast('Location not found', false); }
+    })
+    .catch(() => showToast('Search unavailable', false));
+}
+
+// ═══════════════════════ HEATMAP CANVAS ═══════════════════════
+function drawHeatmap() {
+  if (!mapInstance) return;
+  const canvas = document.getElementById('heatmap-canvas');
+  const mapEl = document.getElementById('leaflet-map');
+  canvas.width = mapEl.offsetWidth;
+  canvas.height = mapEl.offsetHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const w = canvas.width, h = canvas.height;
+
+  // Define heatmap "hot spots" based on current tab
+  const spots = getHeatspots();
+
+  spots.forEach(spot => {
+    const r = spot.radius * Math.min(w, h);
+    const cx = spot.x * w;
+    const cy = spot.y * h;
+    const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    grd.addColorStop(0, spot.centerColor);
+    grd.addColorStop(0.3, spot.midColor);
+    grd.addColorStop(0.6, spot.outerColor);
+    grd.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+function getHeatspots() {
+  const palettes = {
+    Crime: [
+      { x: 0.75, y: 0.7, radius: 0.45, centerColor: 'rgba(180,0,0,.85)', midColor: 'rgba(230,80,0,.6)', outerColor: 'rgba(255,200,0,.25)' },
+      { x: 0.82, y: 0.85, radius: 0.28, centerColor: 'rgba(200,10,0,.75)', midColor: 'rgba(240,100,0,.5)', outerColor: 'rgba(255,210,30,.2)' },
+    ],
+    Disaster: [
+      { x: 0.72, y: 0.65, radius: 0.48, centerColor: 'rgba(160,0,0,.8)', midColor: 'rgba(220,60,0,.55)', outerColor: 'rgba(255,190,0,.25)' },
+      { x: 0.55, y: 0.35, radius: 0.22, centerColor: 'rgba(200,20,0,.6)', midColor: 'rgba(240,110,0,.4)', outerColor: 'rgba(255,220,50,.15)' },
+    ],
+    Tourism: [
+      { x: 0.68, y: 0.6, radius: 0.38, centerColor: 'rgba(170,10,0,.7)', midColor: 'rgba(230,70,0,.5)', outerColor: 'rgba(255,195,10,.22)' },
+      { x: 0.42, y: 0.45, radius: 0.25, centerColor: 'rgba(190,15,0,.65)', midColor: 'rgba(235,85,0,.45)', outerColor: 'rgba(255,205,20,.18)' },
+    ],
+    Healthcare: [
+      { x: 0.5, y: 0.5, radius: 0.4, centerColor: 'rgba(160,0,20,.7)', midColor: 'rgba(210,50,0,.5)', outerColor: 'rgba(255,180,0,.2)' },
+      { x: 0.75, y: 0.55, radius: 0.3, centerColor: 'rgba(180,5,0,.65)', midColor: 'rgba(225,65,0,.45)', outerColor: 'rgba(255,195,10,.18)' },
+    ],
+  };
+  return palettes[currentTab] || palettes.Crime;
+}
+
+// ═══════════════════════ LAYERS ═══════════════════════
+function renderLayers() {
+  const layers = LAYERS[currentTab] || [];
+  const list = document.getElementById('layer-list');
+  list.innerHTML = layers.map((l, i) => `
+    <div class="layer-item ${i === currentLayerIndex ? 'active' : ''}" onclick="selectLayer(${i})">
+      <span class="layer-icon">${l.icon}</span>
+      <span>${l.name}</span>
+    </div>
+  `).join('');
+
+  const legendItems = LEGENDS[currentTab] || [];
+  document.getElementById('legend-items').innerHTML = legendItems.map(l => `
+    <div class="legend-item">
+      <span class="legend-dot" style="background:${l.color}"></span>
+      <span>${l.label}</span>
+    </div>
+  `).join('');
+}
+
+function selectLayer(i) {
+  currentLayerIndex = i;
+  renderLayers();
+  drawHeatmap();
+  showToast('Layer: ' + LAYERS[currentTab][i].name);
+}
+
+function switchTab(tab, btn) {
+  currentTab = tab;
+  currentLayerIndex = 0;
+  document.querySelectorAll('.map-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderLayers();
+  drawHeatmap();
+}
+
+function updateTimeRange() {
+  const s = parseInt(document.getElementById('time-range-start').value);
+  const e = parseInt(document.getElementById('time-range-end').value);
+  const start = Math.min(s, e);
+  const end = Math.max(s, e);
+  document.getElementById('time-range-label').textContent = start + ' - ' + end;
+}
+
+function updateRegion() {
+  drawHeatmap();
+  showToast('Region updated');
+}
+
+function exportData() {
+  const tab = currentTab;
+  const layer = LAYERS[tab][currentLayerIndex]?.name || 'data';
+  const csv = `Layer,Region,Period,Intensity\n${layer},${document.getElementById('region-select').value},2020-2024,High`;
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `geopik_${tab.toLowerCase()}_${layer.replace(/\s+/g,'_').toLowerCase()}.csv`;
+  a.click();
+  showToast('CSV exported!');
+}
+
+// ═══════════════════════ SAVED GRID ═══════════════════════
+function renderSavedGrid(filter) {
+  const grid = document.getElementById('saved-grid');
+  let items = SAVED_ITEMS;
+  if (filter === 'reports') items = items.filter(i => i.type === 'REPORT');
+  if (filter === 'maps') items = items.filter(i => i.type === 'MAP VIEW');
+
+  grid.innerHTML = items.map(item => `
+    <div class="saved-card" onclick="navigate('map')">
+      <div class="saved-card-thumb">
+        <img src="${item.img}" alt="${item.title}" onerror="this.style.background='#2a2a2a';this.src=''">
+        <span class="card-badge">${item.type}</span>
+      </div>
+      <div class="saved-card-body">
+        <h3>${item.title}</h3>
+        <div class="saved-card-meta">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          ${item.edited}
+        </div>
+        <div class="saved-card-footer">
+          <span class="saved-card-tags">${item.tags}</span>
+          <a class="view-link">View →</a>
+        </div>
+      </div>
+    </div>
+  `).join('') + `
+    <div class="saved-card new-card" onclick="navigate('map')">
+      <div class="plus-circle">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E8312A" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </div>
+      <h3>Create New Analysis</h3>
+      <p>Start a fresh map project</p>
+    </div>
+  `;
+}
+
+function filterSaved(type, btn) {
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderSavedGrid(type);
+}
+
+// ═══════════════════════ TOAST ═══════════════════════
+let toastTimeout;
+function showToast(msg, success = true) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.querySelector('.toast-icon').textContent = success ? '✓' : '✕';
+  t.querySelector('.toast-icon').style.color = success ? '#4CAF50' : '#E8312A';
+  t.classList.add('show');
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ═══════════════════════ INIT ═══════════════════════
+window.addEventListener('resize', () => { if (currentPage === 'map') drawHeatmap(); });
+</script>
+</body>
+</html>
